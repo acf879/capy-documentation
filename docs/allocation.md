@@ -6,16 +6,18 @@ Most notably, UI allocations are made using only **one** allocator that stays co
 
 ## Rationale
 
-### Why Have One (or two really) Constant Allocator ?
-Because, realistically, you cannot mix multiple allocators in the GUI world, or you end up with
-an unreasonable inefficiency, all for the sake of dubious benefits.
+### Why Have One Constant Allocator ?
+Realistically, you cannot mix multiple allocators in the GUI world, or you end up with
+an unreasonable inefficiency, all for the sake of dubious benefits (in the specific case of
+making GUIs). In pratice, if you look at other GUI toolkits made in Zig, they don't require an
+allocator as an argument for every function and/or initializer.
 
 In Zig, having the choice of using multiple allocators is very useful. It allows to vary the type
 of allocator chosen depending on the context of the code. For instance, you might use an [`ArenaAllocator`](https://ziglang.org/documentation/master/std/#std.heap.arena_allocator.ArenaAllocator)
 when handling web requests, or a [`FixedBufferAllocator`](https://ziglang.org/documentation/master/std/#std.heap.FixedBufferAllocator)
 in other situations.
 
-But there is exactly one context that Capy handles: the GUI context, and there's no utility in
+But there is exactly one context that Capy handles: the GUI context, and there's no usefulness in
 changing allocator between different components. Allocating a `Button` on an `ArenaAllocator` and
 then allocating a `Container` on a `GeneralPurposeAllocator` would indeed be a fun exercise, but a
 futile one. It would also make everything needlessly complex. What happens if I put that `Button`
@@ -45,13 +47,6 @@ Capy is in the same situation, and so doesn't handle out of memory errors.
 
 ## Consequences
 
-Capy currently has two allocators:
-- `capy.lasting_allocator`, which you can override by setting `pub const capy_lasting_allocator = ...`
-in your root file, is an allocator used for allocation that last (e.g. a `Button`)
-- `capy.scratch_allocator`, which you can override by setting `pub const capy_scratch_allocator = ...`
-in your root file, is an allocator used for short-lived small allocations (e.g. converting UTF-8
-to UTF-16 in order to pass it on to win32)
-
-(Note that I'm still wondering about the utility of `capy.scratch_allocator`, so it might be removed
-later)
-
+Capy currently has only one allocator: `capy.allocator`, which you can override by setting `pub
+const capy_allocator = ...` in your root file, is an allocator used for all the allocations Capy
+makes.
